@@ -1,0 +1,1 @@
+export  * as ServedCity from './served-city'
