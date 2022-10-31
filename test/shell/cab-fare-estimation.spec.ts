@@ -1,4 +1,4 @@
-import {EstimationCommandRoute, EstimationCommand }  from '../../src/shell/index';
+import {EstimationCommandRoute, EstimationCommand, estimateRide }  from '../../src/shell';
 import {ServedCity} from '../../src/core'
 import * as cities from "./fake-served-cities";
 
@@ -26,9 +26,9 @@ describe('Cab fare estimation', () => {
                 city
             } 
         };
-        const estimationCommand = {route};
+        const estimationCommand: EstimationCommand = {route};
         // And the itinerary distance for this route is 25 KM
         const fare = await estimate(estimationCommand);
-        expect(fare).toEqual('$ 45.3');
+        expect(fare).toEqual('$45.3');
     })
 })
