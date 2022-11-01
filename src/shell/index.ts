@@ -8,8 +8,8 @@ export type EstimationCommand = {
 }
 
 export type EstimationCommandRoute = {
-    from: EstimationCommandRouteAddress,
-    to: EstimationCommandRouteAddress
+    origin: EstimationCommandRouteAddress,
+    destination: EstimationCommandRouteAddress
 }
 
 export type EstimationCommandRouteAddress = {
@@ -26,9 +26,9 @@ export const estimateRide = (getServedCity: GetServedCity, getItinerary: GetItin
 };
 
 const toAddress = async (getServedCity: GetServedCity, commandRoute: EstimationCommandRoute): Promise<Address.Address> {
-    const city = await getServedCity(commandRoute.from.city);
+    const city = await getServedCity(commandRoute.origin.city);
     return {
-        street:commandRoute.from.street,
+        street:commandRoute.origin.street,
         city
     }
 }
