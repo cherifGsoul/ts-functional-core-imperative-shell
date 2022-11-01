@@ -1,5 +1,5 @@
-import { Address, Itinerary, Route } from "../core";
-import { GetServedCity } from "../core/estimation";
+import { Address, Estimation, Fare, Itinerary, Route } from "../core";
+import { GetItinerary, GetServedCity } from "../core/estimation";
 
 export type Estimate = (command: EstimationCommand) => Promise<string>
 
@@ -8,19 +8,21 @@ export type EstimationCommand = {
 }
 
 export type EstimationCommandRoute = {
-    from: {
-        street: string,
-        city :string
-    },
-    to: {
-        street: string,
-        city :string
-    }
+    from: EstimationCommandRouteAddress,
+    to: EstimationCommandRouteAddress
 }
+
+export type EstimationCommandRouteAddress = {
+    street: string,
+    city :string
+}
+
 // The use case
-export const estimateRide = (getServedCity: GetServedCity): Estimate => async (command: EstimationCommand):  Promise<string> => {
+export const estimateRide = (getServedCity: GetServedCity, getItinerary: GetItinerary): Estimate => async (command: EstimationCommand):  Promise<string> => {
     const route = await toRoute(getServedCity, command.route);
-    const itenerary = await toItinerary(route);
+    const itinerary = await toItinerary(getItinerary, route);
+    const estimation =  Estimation.estimateFor(itinerary);
+    return Fare.toString(estimation.fare);
 };
 
 const toAddress = async (getServedCity: GetServedCity, commandRoute: EstimationCommandRoute): Promise<Address.Address> {
@@ -37,6 +39,10 @@ const toRoute = async (getServedCity: GetServedCity, commandRoute: EstimationCom
     return Route.between(origin, destination);
 }
 
-const toItinerary = async (getItinerary: GetItinerary): Promise<Itinerary> => {
-    
+const toItinerary = async (getItinerary: GetItinerary, route: Route.Route): Promise<Itinerary.Itinerary> => {
+    try {
+        return await getItinerary(route)
+    } catch (error) {
+        throw new Error('Itineraty can not be found')
+    }
 }
