@@ -25,7 +25,7 @@ export const estimateRide = (getServedCity: GetServedCity, getItinerary: GetItin
     return Fare.toString(estimation.fare);
 };
 
-const toAddress = async (getServedCity: GetServedCity, commandRoute: EstimationCommandRoute): Promise<Address.Address> {
+const toAddress = async (getServedCity: GetServedCity, commandRoute: EstimationCommandRoute): Promise<Address.Address> => {
     const city = await getServedCity(commandRoute.origin.city);
     return {
         street:commandRoute.origin.street,
