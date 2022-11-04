@@ -8,3 +8,5 @@ export const fromString = (s: string) => {
 	}
 	return s;
 }
+
+export const equals = (s: NotEmptyString, other: NotEmptyString): boolean => s === other;

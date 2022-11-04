@@ -7,3 +7,7 @@ export const of = (s: string): ServedCity => {
     }
     return s;
 }
+
+export const equals = (city: ServedCity, other: ServedCity): Boolean => {
+    return city === other;
+}

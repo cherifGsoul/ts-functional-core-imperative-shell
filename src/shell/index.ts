@@ -22,20 +22,20 @@ export const estimateRide = (getServedCity: GetServedCity, getItinerary: GetItin
     const route = await toRoute(getServedCity, command.route);
     const itinerary = await toItinerary(getItinerary, route);
     const estimation =  Estimation.estimateFor(itinerary);
-    return Fare.toString(estimation.fare);
+    return Fare.format(estimation.fare);
 };
 
-const toAddress = async (getServedCity: GetServedCity, commandRoute: EstimationCommandRoute): Promise<Address.Address> => {
-    const city = await getServedCity(commandRoute.origin.city);
+const toAddress = async (getServedCity: GetServedCity, commandAddress: EstimationCommandRouteAddress): Promise<Address.Address> => {
+    const city = await getServedCity(commandAddress.city);
     return {
-        street:commandRoute.origin.street,
+        street:commandAddress.street,
         city
     }
 }
 
 const toRoute = async (getServedCity: GetServedCity, commandRoute: EstimationCommandRoute): Promise<Route.Route> => {
-    const origin = await toAddress(getServedCity, commandRoute);
-    const destination = await toAddress(getServedCity, commandRoute);
+    const origin = await toAddress(getServedCity, commandRoute.origin);
+    const destination = await toAddress(getServedCity, commandRoute.destination);
     return Route.between(origin, destination);
 }
 

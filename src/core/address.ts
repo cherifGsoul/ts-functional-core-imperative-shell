@@ -5,3 +5,10 @@ export type Address = {
     city: ServedCity.ServedCity
 }
 
+export const equals = (address: Address, other: Address): boolean => {
+    if (!ServedCity.equals(address.city, other.city)) {
+        return false;
+    }
+    return address.street === other.street
+}
+
