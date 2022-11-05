@@ -32,6 +32,7 @@ export const multiply = (multiplier: number, fare: Fare): Fare => {
 	if (multiplier === 0) {
 		throw new Error('Fare can not be multiplied by zero');
 	}
+	console.log(multiplier, fare.cents)
 	const newCents = multiplier * Number.parseInt(fare.cents)
 	return fromCents(newCents, fare.currency);
 }

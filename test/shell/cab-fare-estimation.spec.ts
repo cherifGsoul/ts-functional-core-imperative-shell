@@ -1,5 +1,5 @@
 import {EstimationCommandRoute, EstimationCommand, estimateRide }  from '../../src/shell';
-import {Itinerary, Route, ServedCity} from '../../src/core'
+import {Distance, Itinerary, Route, ServedCity} from '../../src/core'
 import * as cities from "./fake-served-cities";
 import { addItinerary, getItinerary } from './fake-itinerary-service';
 
@@ -24,7 +24,7 @@ describe('Cab fare estimation', () => {
         })
         const itinerary: Itinerary.Itinerary = {
             route: availableRoute,
-            distance: 25
+            distance: Distance.fromMeters(25000)
         }
         await addItinerary(itinerary)
         estimate = estimateRide(cities.getServedCity, getItinerary);
