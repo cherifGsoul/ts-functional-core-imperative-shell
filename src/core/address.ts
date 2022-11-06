@@ -1,7 +1,8 @@
 import { ServedCity } from "."
+import { NonEmptyString } from 'newtype-ts/lib/NonEmptyString'
 
 export type Address = {
-    street: string,
+    street: NonEmptyString,
     city: ServedCity.ServedCity
 }
 

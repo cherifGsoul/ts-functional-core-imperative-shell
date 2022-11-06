@@ -1,43 +1,53 @@
-import * as NotEmptyString from "./not-empty-string";
-import { PositiveInteger } from "./positive-integer"
+import { isNonEmptyString, NonEmptyString } from 'newtype-ts/lib/NonEmptyString';
+import { isPositiveInteger, PositiveInteger } from 'newtype-ts/lib/PositiveInteger';
+import { Newtype } from 'newtype-ts';
+import * as E  from "fp-ts/lib/Either";
+import * as A from 'fp-ts/lib/Apply';
 
+export type Amount = Newtype<{readonly Amount: unique symbol}, PositiveInteger>
+
+export type Currency = Newtype<{readonly Currency: unique symbol}, NonEmptyString>
 export type Fare = {
-	cents: NotEmptyString.NotEmptyString,
-	currency: NotEmptyString.NotEmptyString
+	amount: Amount,
+	currency: Currency
 }
 
-export const fromCents = (cents: NotEmptyString.NotEmptyString | PositiveInteger, currency: NotEmptyString.NotEmptyString): Fare => {
-	const centsFromString = Number(String(cents))
-	if (!Number.isInteger(centsFromString)) {
-		throw new Error('Amount must be integer like value');
+class InvalidFareAmountError extends TypeError {
+	public __tag: 'InvalidFareAmountError' = 'InvalidFareAmountError'
+	private constructor(value: unknown) {
+		super(`${value} is invalid amount value`)
 	}
-	return Object.assign(Object.create(null), {
-		cents: String(cents),
-		currency: currency
+
+	public static of(value: unknown) {
+		return new InvalidFareAmountError(value);
+	}
+}
+class InvalidCurrencyError extends TypeError {
+	public __tag: 'InvalidCurrency' = 'InvalidCurrency'
+	private constructor(value: unknown) {
+		super(`${value} is invalid currency value`)
+	}
+
+	public static of(value: unknown) {
+		return new InvalidCurrencyError(value);
+	}
+}
+
+export type FareError = InvalidFareAmountError | InvalidCurrencyError
+
+type Constuctor<T> = (value: unknown) => E.Either<FareError, T>
+
+const isAmount = (n: unknown): n is Amount => typeof n === 'number' && isPositiveInteger(n)
+const amountFromNumber: Constuctor<Amount> = E.fromPredicate(isAmount, (val) => InvalidFareAmountError.of(val))
+
+const isCurrency = (s: unknown): s is Currency => typeof s === 'string' && isNonEmptyString(s)
+const currencyFromString: Constuctor<Currency> = E.fromPredicate(isCurrency, (val) => InvalidCurrencyError.of(val))
+
+const parseFare = A.sequenceS(E.Apply)
+
+export const forCurrency = (currency: string) => (amount: number) => {
+	return parseFare({
+		amount: amountFromNumber(amount),
+		currency: currencyFromString(currency)
 	});
-}
-
-export const isTheSameCurrency = (fare: Fare, other: Fare) => {
-	return NotEmptyString.equals(fare.currency, fare.currency)
-}
-
-export const add = (fare: Fare, other: Fare) => {
-	if (!isTheSameCurrency(fare, other))  {
-		throw new Error('Only fare with same currency can be added');
-	}
-	const sum = Number.parseInt(fare.cents) + Number.parseInt(other.cents);
-	return fromCents(sum, other.currency);
-}
-export const multiply = (multiplier: number, fare: Fare): Fare => {
-	if (multiplier === 0) {
-		throw new Error('Fare can not be multiplied by zero');
-	}
-	console.log(multiplier, fare.cents)
-	const newCents = multiplier * Number.parseInt(fare.cents)
-	return fromCents(newCents, fare.currency);
-}
-
-export const format = (fare: Fare): string => {
-	const dollars = Number.parseInt(fare.cents) / 100
-    return `${fare.currency} ${dollars}`;
 }
