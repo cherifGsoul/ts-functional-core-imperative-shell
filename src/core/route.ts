@@ -1,14 +1,10 @@
 import { Address } from "."
+import * as E from "fp-ts/lib/Either";
+import * as A from 'fp-ts/lib/Apply';
 
 export type Route = Readonly<{
     origin: Address.Address,
     destination: Address.Address,
 }>
 
-export const between = (origin: Address.Address, destination: Address.Address): Route => {
-    return {origin, destination}
-}
-
-export const equals = (route: Route, other: Route): boolean => {
-    return Address.equals(route.origin, other.origin) && Address.equals(route.destination, other.destination)
-}
+export const between = A.sequenceS(E.Apply)

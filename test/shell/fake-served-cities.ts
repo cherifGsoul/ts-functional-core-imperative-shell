@@ -1,3 +1,4 @@
+import * as TE from "fp-ts/lib/TaskEither";
 import { ServedCity } from "../../src/core";
 import { GetServedCity } from "../../src/core/estimation";
 
@@ -10,11 +11,11 @@ export const serveCity = async (city: string): Promise<string> => {
     return city;
 }
 
-export const getServedCity: GetServedCity = async(city: string): Promise<ServedCity.ServedCity> => {
+export const getServedCity: GetServedCity = (city: string): TE.TaskEither<ServedCity.ServedCityError, ServedCity.ServedCity> => {
     const found = Array.from(cities.values()).find((aCity: string) => city === aCity);
     if (!found) {
-        throw new Error('City not found');
+        return TE.left(ServedCity.InvalidServedCityError.of(city));
     }
-    return ServedCity.of(found);
+    return TE.fromEither(ServedCity.of(found));
 }
 

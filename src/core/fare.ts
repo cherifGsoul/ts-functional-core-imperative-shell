@@ -7,6 +7,7 @@ import * as A from 'fp-ts/lib/Apply';
 export type Amount = Newtype<{readonly Amount: unique symbol}, PositiveInteger>
 
 export type Currency = Newtype<{readonly Currency: unique symbol}, NonEmptyString>
+
 export type Fare = {
 	amount: Amount,
 	currency: Currency

@@ -1,33 +1,54 @@
-import { Distance, NonEmptyString, PositiveInteger } from ".";
+import { isNonEmptyString, NonEmptyString } from 'newtype-ts/lib/NonEmptyString';
+import { isPositiveInteger, PositiveInteger } from 'newtype-ts/lib/PositiveInteger'
+import { Newtype } from 'newtype-ts'
+import * as E  from "fp-ts/lib/Either";
+import * as A from 'fp-ts/lib/Apply';
+
+export type Unit = Newtype<{readonly Unit: unique symbol}, NonEmptyString>
+export type Value = Newtype<{readonly Value: unique symbol}, PositiveInteger>
 
 export type Distance = Readonly<{
-    value: PositiveInteger.PositiveInteger,
-    unit: NonEmptyString.NotEmptyString
+    value: Value,
+    unit: Unit
 }>
 
-export const fromMeters = (meters: PositiveInteger.PositiveInteger): Distance => {
-    return Object.assign(Object.create(null), {
-        value: meters,
-        unit: 'meter'
-    })
+class InvalidDistanceValueError extends TypeError {
+	public __tag: 'InvalidDistanceValueError' = 'InvalidDistanceValueError'
+	private constructor(value: unknown) {
+		super(`${value} is invalid distance value`)
+	}
+
+	public static of(value: unknown) {
+		return new InvalidDistanceValueError(value);
+	}
 }
 
-export const minus = (distance: Distance, sub: Distance): Distance => {
-    if (distance.unit !== sub.unit) {
-        throw new Error('Distances must be the same unit');
-    }
-    const newValue = distance.value - sub.value
-    return Object.assign(Object.create(null), {
-        value: newValue,
-        unit: distance.unit
-    })
+class InvalidDitanceUnitError extends TypeError {
+	public __tag: 'InvalidDitanceUnitError' = 'InvalidDitanceUnitError'
+	private constructor(value: unknown) {
+		super(`${value} is invalid unit value`)
+	}
 
+	public static of(value: unknown) {
+		return new InvalidDitanceUnitError(value);
+	}
 }
 
-export function toKm(distance: Distance): Distance {
-    return Object.assign(Object.create(null), {
-        value: distance.value/1000,
-        unit: 'KM'
-    })
-}
+export type DistanceError = InvalidDistanceValueError | InvalidDitanceUnitError
 
+type Constuctor<T> = (value: unknown) => E.Either<DistanceError, T>
+
+const isValue = (n: unknown): n is Value => typeof n === 'number' && isPositiveInteger(n)
+const valueFromNumber: Constuctor<Value> = E.fromPredicate(isValue, (val) => InvalidDitanceUnitError.of(val))
+
+const isUnit = (s: unknown): s is Unit => typeof s === 'string' && isNonEmptyString(s)
+const unitFromString: Constuctor<Unit> = E.fromPredicate(isUnit, (val) => InvalidDistanceValueError.of(val))
+
+const parseFare = A.sequenceS(E.Apply)
+
+export const forCurrency = (unit: string) => (value: number) => {
+	return parseFare({
+		amount: valueFromNumber(value),
+		currency: unitFromString(unit)
+	});
+}
