@@ -1,21 +1,25 @@
+import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
+import * as E from "fp-ts/lib/Either";
 import { ServedCity } from "../../src/core";
 import { GetServedCity } from "../../src/core/estimation";
 
-const cities: Set<string> = new Set();
+const cities: Map<string, ServedCity.ServedCity> = new Map();
 
 // Not part of the public API
 // Cities context handle served cities
-export const serveCity = async (city: string): Promise<string> => {
-    cities.add(city);
-    return city;
+export const serveCity = (city: string): void => {
+    pipe(
+        ServedCity.of(city),
+        E.map(c => cities.set(city, c))
+    );
 }
 
 export const getServedCity: GetServedCity = (city: string): TE.TaskEither<ServedCity.ServedCityError, ServedCity.ServedCity> => {
-    const found = Array.from(cities.values()).find((aCity: string) => city === aCity);
-    if (!found) {
+    const servedCity = cities.get(city)
+    if (!servedCity) {
         return TE.left(ServedCity.InvalidServedCityError.of(city));
     }
-    return TE.fromEither(ServedCity.of(found));
+    return TE.right(servedCity);
 }
 

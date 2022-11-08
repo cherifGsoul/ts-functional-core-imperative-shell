@@ -1,23 +1,20 @@
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
+import * as E from "fp-ts/lib/Either";
 import { Address, Estimation, Fare, Itinerary, Route, ServedCity } from "../core";
-import { forCity } from "../core/address";
 import { GetItinerary, GetServedCity } from "../core/estimation";
+import * as A from 'fp-ts/lib/Apply';
 
 export type Estimate = (command: EstimationCommand) => Promise<string>
 
 export type EstimationCommand = {
-    route: EstimationCommandRoute
-}
-
-export type EstimationCommandRoute = {
     origin: EstimationCommandRouteAddress,
     destination: EstimationCommandRouteAddress
 }
 
 export type EstimationCommandRouteAddress = {
     street: string,
-    city :string
+    city: string
 }
 
 // The use case
@@ -30,11 +27,18 @@ export const estimateRide = (getServedCity: GetServedCity, getItinerary: GetItin
     return toAddress(getServedCity)(command.route.origin)
 };
 
-const toAddress = (getServedCity: GetServedCity) => (commandAddress: EstimationCommandRouteAddress): TE.TaskEither<ServedCity.InvalidServedCityError, ServedCity.ServedCity> => {
-    return pipe(
-        TE.Do,
-        TE.bind('city', () => getServedCity(commandAddress.city))
+export const toAddress = (getServedCity: GetServedCity) => (commandAddress: EstimationCommandRouteAddress): /*E.Either<Error, Address.Address>*/ void  => {
+    const city = getServedCity(commandAddress.city)
+    pipe(
+        Address.parseAddress({
+            address: 
+        })
     )
+    // const servedCity = getServedCity(commandAddress.city)
+    // Address.parseAddress({
+    //     street: Address.streetFromString(commandAddress.street),
+    //     city: servedCity
+    // })
 }
 
 // const toRoute = async (getServedCity: GetServedCity, commandRoute: EstimationCommandRoute): Promise<Route.Route> => {

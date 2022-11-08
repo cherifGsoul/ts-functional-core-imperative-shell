@@ -28,13 +28,13 @@ type AddressError = InvalidAddressStreet | ServedCity.ServedCityError
 type Constructor<T> = (value: unknown) => E.Either<AddressError, T>
 
 const isStreet = (val: unknown): val is Street => typeof val === 'string' && isNonEmptyString(val)
-const streetFromString: Constructor<Street> = E.fromPredicate(isStreet, (value) => InvalidAddressStreet.of(value))
+export const streetFromString: Constructor<Street> = E.fromPredicate(isStreet, (value) => InvalidAddressStreet.of(value))
 
-const parseAddress = A.sequenceS(E.Apply);
+export const parseAddress = A.sequenceS(E.Apply);
 
-export const forCity = (city: string) => (street: string) => {
-    return parseAddress({
-		street: streetFromString(street),
-		city: ServedCity.of(city)
-	});
-}
+// export const forCity = (city: ServedCity.ServedCity) => (street: string) => {
+//     return parseAddress({
+// 		street: streetFromString(street),
+// 		city
+// 	});
+// }

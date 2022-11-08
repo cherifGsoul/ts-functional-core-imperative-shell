@@ -17,7 +17,7 @@ export type Estimation = {
 
 export type GetServedCity = (city: string) =>  TaskEither<ServedCity.ServedCityError, ServedCity.ServedCity>
 
-export type GetItinerary = (route: Route.Route) => TaskEither<Itinerary.Itinerary>
+export type GetItinerary = (route: Route.Route) => TaskEither<Error, Itinerary.Itinerary>
 
 export const estimateFor = (): unknown => {
 	const baseFare = toBaseFare()
