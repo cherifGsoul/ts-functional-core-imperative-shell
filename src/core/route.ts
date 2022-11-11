@@ -1,10 +1,25 @@
-import { Address } from "."
+import { Address, AddressInput, toAddress } from "./address"
+import * as A from "fp-ts/lib/Apply";
 import * as E from "fp-ts/lib/Either";
-import * as A from 'fp-ts/lib/Apply';
+import { pipe } from "fp-ts/lib/function";
 
-export type Route = Readonly<{
-    origin: Address.Address,
-    destination: Address.Address,
-}>
+// Route
+export type Route = {
+	origin: Address,
+	destination: Address
+}
 
-export const between = A.sequenceS(E.Apply)
+export type RouteInput = {
+	origin: AddressInput,
+	destination: AddressInput
+}
+
+const parseRoute = A.sequenceS(E.Apply)
+
+export const aRouteBetween = (input: RouteInput) => pipe(
+	parseRoute({
+		origin: toAddress({street: input.origin.street, city: input.origin.city}),
+		destination: toAddress({street: input.destination.street, city: input.destination.city}),
+	}),
+	E.map(props => ({...props}))
+)

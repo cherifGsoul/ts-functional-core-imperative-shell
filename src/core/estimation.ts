@@ -1,50 +1,26 @@
-import { pipe } from "fp-ts/lib/function";
-import { Distance, Estimation, Fare, Itinerary, Route, ServedCity } from "."
-import * as EstimationId from "./estimation-id";
-import { forCurrency } from "./fare";
-import * as E from "fp-ts/lib/Either";
-import { EitherT } from "fp-ts/lib/EitherT";
+import { pipe } from "fp-ts/lib/function"
+import * as Distance from "./distance"
+import * as Itinerary from "./itinerary"
+import * as ServedCity from "./served-city"
+import * as Route from "./route"
 import { TaskEither } from "fp-ts/lib/TaskEither";
 
-const BASE_FARE = 170
-const MINIMUM_FARE = 450
-
-export type Estimation = {
-	id: EstimationId.EstimationId,
-	itinerary: Itinerary.Itinerary
-	fare: Fare.Fare
+export const estimatFor = (itinerary: Itinerary.Itinerary) => {
+	return pipe(
+		itinerary.distance,
+		Distance.minus(Distance.isoDistance.wrap(1)),
+		toRestDistanceFare(170),
+		withFirstKmFare(450),
+		toEstimation(itinerary)
+	)
 }
 
-export type GetServedCity = (city: string) =>  TaskEither<ServedCity.ServedCityError, ServedCity.ServedCity>
+const toRestDistanceFare = (baseFare: number) => (distance: Distance.Distance) => Distance.isoDistance.unwrap(distance) * baseFare
+const withFirstKmFare = (firstKmFare: number) => (restDistanceFare: number) => restDistanceFare + firstKmFare
+const toEstimation = (itinerary: Itinerary.Itinerary) => (fare: number) =>({itinerary, fare})
+
+export const formatFare = (fare: number) => fare / 100
+
+export type GetServedCity = (city: string) =>  TaskEither<Error, ServedCity.ServedCity>
 
 export type GetItinerary = (route: Route.Route) => TaskEither<Error, Itinerary.Itinerary>
-
-export const estimateFor = (): unknown => {
-	const baseFare = toBaseFare()
-	const minimumFare = toMinimumFare()
-	// const restDistance = Distance.minus(itinerary.distance, Distance.fromMeters(1000));
-	// const restDistanceFare = Fare.multiply(Distance.toKm(restDistance).value, baseFare)
-	// const fare = Fare.add(minimumFare, restDistanceFare);
-	// return Object.assign(Object.create(null), {
-	// 	id: EstimationId.generate(),
-	// 	itinerary,
-	// 	fare
-	// });
-	return toBaseFare()
-
-}
-
-const toBaseFare = () => {
-	return pipe(
-		BASE_FARE,
-		forCurrency('CAD')
-	)
-}
-
-
-const toMinimumFare = () => {
-	return pipe(
-		MINIMUM_FARE,
-		forCurrency('CAD')
-	)
-}

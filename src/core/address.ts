@@ -1,40 +1,28 @@
-import { ServedCity } from "."
+import { ServedCity, servedCityFromString } from "./served-city"
+import { Street, streetFromString } from "./street"
+import * as A from "fp-ts/lib/Apply";
 import * as E from "fp-ts/lib/Either";
-import { isNonEmptyString, NonEmptyString } from 'newtype-ts/lib/NonEmptyString';
-import { Newtype } from 'newtype-ts'
-import * as A from 'fp-ts/lib/Apply';
+import { pipe } from "fp-ts/lib/function";
 
-
-export type Street = Newtype<{readonly Street: unique symbol}, NonEmptyString>
-
+// Address
 export type Address = {
-    street: Street,
-    city: ServedCity.ServedCity
+	street: Street,
+	city: ServedCity
 }
 
-class InvalidAddressStreet extends TypeError {
-    public _tag: 'InvalidAddressStreet' = 'InvalidAddressStreet'
-    private constructor(value: unknown){
-        super(`${value} Invalid served city`)
-    }
+const parseAddress = A.sequenceS(E.Apply)
 
-    static of(value: unknown) {
-        return new InvalidAddressStreet(value)
-    }
-} 
+export type AddressInput = Readonly<{
+	street: string,
+	city: string
+}>
 
-type AddressError = InvalidAddressStreet | ServedCity.ServedCityError
-
-type Constructor<T> = (value: unknown) => E.Either<AddressError, T>
-
-const isStreet = (val: unknown): val is Street => typeof val === 'string' && isNonEmptyString(val)
-export const streetFromString: Constructor<Street> = E.fromPredicate(isStreet, (value) => InvalidAddressStreet.of(value))
-
-export const parseAddress = A.sequenceS(E.Apply);
-
-// export const forCity = (city: ServedCity.ServedCity) => (street: string) => {
-//     return parseAddress({
-// 		street: streetFromString(street),
-// 		city
-// 	});
-// }
+export const toAddress = (input: AddressInput) => {
+	return pipe(
+		parseAddress({
+			street: streetFromString(input.street),
+			city: servedCityFromString(input.city)
+		}),
+		E.map(props =>({...props}))
+	)
+}
