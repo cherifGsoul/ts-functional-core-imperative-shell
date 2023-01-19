@@ -10,7 +10,7 @@ export type Address = {
 	city: ServedCity
 }
 
-const parseAddress = A.sequenceS(E.Apply)
+export const parseAddress = A.sequenceS(E.Apply)
 
 export type AddressInput = Readonly<{
 	street: string,

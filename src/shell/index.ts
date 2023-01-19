@@ -1,9 +1,15 @@
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as E from "fp-ts/lib/Either";
-import { Address, Estimation, Fare, Itinerary, Route, ServedCity } from "../core";
-import { GetItinerary, GetServedCity } from "../core/estimation";
+import { estimatFor, GetItinerary, GetServedCity } from "../core/estimation";
 import * as A from 'fp-ts/lib/Apply';
+import { Address, parseAddress } from "../core/address";
+import { streetFromString } from "../core/street";
+import { servedCityFromString } from "../core/served-city";
+import { parseRoute } from "../core/route";
+import { parseItinerary } from "../core/itinerary";
+import { match } from "assert";
+import { either } from "fp-ts";
 
 export type Estimate = (command: EstimationCommand) => Promise<string>
 
@@ -18,39 +24,38 @@ export type EstimationCommandRouteAddress = {
 }
 
 // The use case
-export const estimateRide = (getServedCity: GetServedCity, getItinerary: GetItinerary) => (command: EstimationCommand):  TE.TaskEither<Error, Address.Address> => {
-    // const route = await toRoute(getServedCity, command.route);
-    // const itinerary = await toItinerary(getItinerary, route);
-    // const estimation =  Estimation.estimateFor(itinerary);
-    // return Fare.format(estimation.fare);
-
-    return toAddress(getServedCity)(command.route.origin)
+export const estimateRide = (getServedCity: GetServedCity, getItinerary: GetItinerary) => (command: EstimationCommand) => {
+    const f = toAddress(getServedCity)
+    console.log(typeof f(command.origin))
+    return f(command.origin)
 };
 
-export const toAddress = (getServedCity: GetServedCity) => (commandAddress: EstimationCommandRouteAddress): /*E.Either<Error, Address.Address>*/ void  => {
-    const city = getServedCity(commandAddress.city)
-    pipe(
-        Address.parseAddress({
-            address: 
-        })
-    )
-    // const servedCity = getServedCity(commandAddress.city)
-    // Address.parseAddress({
-    //     street: Address.streetFromString(commandAddress.street),
-    //     city: servedCity
-    // })
+export const toAddress = (getServedCity: GetServedCity) => (input: EstimationCommandRouteAddress): TE.TaskEither<Error, Address> => {
+	return pipe(
+        getServedCity(input.city),
+        TE.match(
+            (e) => {throw e},
+            (city) => {
+                return parseAddress({
+                    street: streetFromString(input.street),
+                    city: E.right(city)
+                })
+            }
+        ),
+        TE.map(props => ({...props}))
+	)
 }
 
-// const toRoute = async (getServedCity: GetServedCity, commandRoute: EstimationCommandRoute): Promise<Route.Route> => {
-//     const origin = await toAddress(getServedCity, commandRoute.origin);
-//     const destination = await toAddress(getServedCity, commandRoute.destination);
-//     return Route.between(origin, destination);
-// }
+// const toRoute = (getServedCity: GetServedCity) => (input: EstimationCommand) => pipe(
+// 	parseRoute({
+// 		origin: toAddress(input.origin),
+// 		destination: toAddress(input.destination),
+// 	}),
+// 	E.map(props => ({...props}))
+// )
 
-// const toItinerary = async (getItinerary: GetItinerary, route: Route.Route): Promise<Itinerary.Itinerary> => {
-//     try {
-//         return await getItinerary(route)
-//     } catch (error) {
-//         throw new Error('Itineraty can not be found')
-//     }
-// }
+// const toItinerary = (getItinerary: GetItinerary) => (commandRoute: EstimationCommand) => pipe(
+//     toRoute(commandRoute),
+//     TE.fromEither,
+//     TE.map(getItinerary),
+// )

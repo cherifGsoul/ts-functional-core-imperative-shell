@@ -14,7 +14,7 @@ export type RouteInput = {
 	destination: AddressInput
 }
 
-const parseRoute = A.sequenceS(E.Apply)
+export const parseRoute = A.sequenceS(E.Apply)
 
 export const aRouteBetween = (input: RouteInput) => pipe(
 	parseRoute({

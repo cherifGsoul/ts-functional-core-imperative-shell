@@ -9,7 +9,7 @@ export type Itinerary = {
 	distance: Distance
 }
 
-const parseItinerary = A.sequenceS(E.Apply)
+export const parseItinerary= A.sequenceS(E.Apply)
 
 export const itineraryFrom = ({route, distance}: {route: RouteInput, distance: number}) => pipe(
 	parseItinerary({
